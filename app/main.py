@@ -1,7 +1,7 @@
 import sys
-from pathlib import Path
-import os
+import subprocess
 import shutil
+import os
 
 SHELL_BUILTINS = {
     "echo",
@@ -32,6 +32,13 @@ def main():
             
             else:
                 print(f"{builtin}: not found")
+        elif command not in SHELL_BUILTINS and shutil.which(command.split()[0]):
+            try:
+                # Execute the command using subprocess
+                result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+                print(result.stdout, end="")
+            except subprocess.CalledProcessError as e:
+                print(e)
 
         else:
             print(f"{command}: command not found")
