@@ -1,4 +1,5 @@
 import os
+import re
 
 SHELL_BUILTINS = {
     "echo",
@@ -8,11 +9,8 @@ SHELL_BUILTINS = {
     "cd",
 }
 
-def type(command):
+def type(builtin):
     import shutil
-
-    # search in all the path dirs
-    builtin = command.split(" ", 1)[1]
     
     if builtin in SHELL_BUILTINS:
         print(f"{builtin} is a shell builtin")
@@ -32,3 +30,14 @@ def change_dir(dir):
         os.chdir(dir)
     except FileNotFoundError:
         print(f"cd: {dir}: No such file or directory")
+
+def handle_quotes(command):
+    exp = r"'([^']*)'"
+    matches = re.findall(exp, command)
+
+    # print(matches)
+
+    if not matches:
+        return command.split(' ')
+    
+    return matches

@@ -1,30 +1,36 @@
 import sys
 import subprocess
 import shutil
+import shlex
 import os
 from app.commands import type, change_dir, SHELL_BUILTINS
 
 def main():
     while True:
-        # Uncomment this block to pass the first stage
         sys.stdout.write("$ ")
 
         # Wait for user input
-        command = input()
-        if command == "exit 0":
+        raw_input = input()
+        prompt = shlex.split(raw_input)
+        command = prompt[0] if prompt else ''
+        args = prompt[1:] if len(prompt) > 1 else []
+
+        if command == "exit":
             return 0
+        elif command == '':
+            continue
         elif command.startswith("echo"):
-            print(command.split(" ", 1)[1] if " " in command else "")
+            print(' '.join(args))
         elif command.startswith("type"):
-            type(command)
+            type(args[0])
         elif command == "pwd":
             print(os.getcwd())
         elif command.startswith("cd"):
-            change_dir(command.split(" ", 1)[1])
-        elif command not in SHELL_BUILTINS and shutil.which(command.split()[0]):
+            change_dir(args[0])
+        elif command not in SHELL_BUILTINS and shutil.which(command):
             try:
                 # Execute the command using subprocess
-                result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+                result = subprocess.run(raw_input, shell=True, capture_output=True, text=True, check=True)
                 print(result.stdout, end="")
             except subprocess.CalledProcessError as e:
                 print(e)
