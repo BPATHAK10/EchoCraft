@@ -25,6 +25,8 @@ def type(command):
 
 
 def change_dir(dir):
+    if dir == "~":
+        dir = os.environ.get("HOME")
     # change the cwd to dir
     try:
         os.chdir(dir)
