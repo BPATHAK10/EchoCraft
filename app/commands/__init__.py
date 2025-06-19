@@ -2,6 +2,7 @@ SHELL_BUILTINS = {
     "echo",
     "exit",
     "type",
+    "pwd",
 }
 
 def type(command):
