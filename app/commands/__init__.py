@@ -1,8 +1,11 @@
+import os
+
 SHELL_BUILTINS = {
     "echo",
     "exit",
     "type",
     "pwd",
+    "cd",
 }
 
 def type(command):
@@ -19,3 +22,11 @@ def type(command):
     
     else:
         print(f"{builtin}: not found")
+
+
+def change_dir(dir):
+    # change the cwd to dir
+    try:
+        os.chdir(dir)
+    except FileNotFoundError:
+        print(f"cd: {dir}: No such file or directory")

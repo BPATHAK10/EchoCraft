@@ -2,7 +2,7 @@ import sys
 import subprocess
 import shutil
 import os
-from app.commands import type, SHELL_BUILTINS
+from app.commands import type, change_dir, SHELL_BUILTINS
 
 def main():
     while True:
@@ -19,6 +19,8 @@ def main():
             type(command)
         elif command == "pwd":
             print(os.getcwd())
+        elif command.startswith("cd"):
+            change_dir(command.split(" ", 1)[1])
         elif command not in SHELL_BUILTINS and shutil.which(command.split()[0]):
             try:
                 # Execute the command using subprocess
