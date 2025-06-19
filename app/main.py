@@ -17,6 +17,8 @@ def main():
             print(command.split(" ", 1)[1] if " " in command else "")
         elif command.startswith("type"):
             type(command)
+        elif command == "pwd":
+            print(os.getcwd())
         elif command not in SHELL_BUILTINS and shutil.which(command.split()[0]):
             try:
                 # Execute the command using subprocess
