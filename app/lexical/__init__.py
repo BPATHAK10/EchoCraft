@@ -2,89 +2,141 @@
 My custom lexical analyzer for my shell
 """
 
+from enum import Enum
+
+class State(Enum):
+    NORMAL = "normal"
+    SINGLE_QUOTE = "single_quote"
+    DOUBLE_QUOTE = "double_quote"
+
 class MyLex:
-    def __init__(self, input_text:str):
+    def __init__(self, input_text: str):
         self.input_text = input_text
-        self.quoted = False
-        self.double_quoted = False
+        self.state = State.NORMAL
         self.escape = False
-
-        # Split the input into command and args
-        spt = input_text.split(' ', 1)
-        self.command = spt[0] if input_text else ''
-        self.args = spt[1] if len(spt) > 1 else ''
-
-        self.parsed_args = []
-
-
+        self.current_token = ""
+        self.tokens = []
+    
+    def _finish_token(self):
+        """Finish the current token and add it to tokens list"""
+        if self.current_token:
+            self.tokens.append(self.current_token)
+            self.current_token = ""
+    
+    def _add_char(self, char: str):
+        """Add a character to the current token"""
+        self.current_token += char
+    
+    def _process_escaped_char(self, char: str):
+        """Handle an escaped character"""
+        self._add_char(char)
+        self.escape = False
+    
+    def _handle_escape(self, i: int):
+        """Handle escape character (\)"""
+        if self.state == State.SINGLE_QUOTE or self.state == State.DOUBLE_QUOTE:
+            # Inside single quotes, backslash is literal
+            self._add_char("\\")
+        else:
+            # Set escape flag for next character
+            self.escape = True
+    
+    def _handle_single_quote(self):
+        """Handle single quote character"""
+        if self.state == State.NORMAL:
+            self.state = State.SINGLE_QUOTE
+        elif self.state == State.SINGLE_QUOTE:
+            self.state = State.NORMAL
+        # Inside double quotes, single quote is literal
+        elif self.state == State.DOUBLE_QUOTE:
+            self._add_char("'")
+    
+    def _handle_double_quote(self):
+        """Handle double quote character"""
+        if self.state == State.NORMAL:
+            self.state = State.DOUBLE_QUOTE
+        elif self.state == State.DOUBLE_QUOTE:
+            self.state = State.NORMAL
+        # Inside single quotes, double quote is literal
+        elif self.state == State.SINGLE_QUOTE:
+            self._add_char('"')
+    
+    def _handle_whitespace(self):
+        """Handle whitespace character"""
+        if self.state == State.NORMAL:
+            # Only finish token on whitespace in normal state
+            self._finish_token()
+        else:
+            # Inside quotes, whitespace is literal
+            self._add_char(" ")
+    
     def _process(self):
-        # process the args
-        arg = ''
+        """Main processing method"""
         i = 0
-        while i < len(self.args):
-            char = self.args[i]
-            if char == "\\" and not self.quoted and not self.double_quoted:
-                self.escape = True
-            elif self.escape:
-                arg += char
-                self.escape = False
+        while i < len(self.input_text):
+            char = self.input_text[i]
+            
+            # Handle escaped characters first
+            if self.escape:
+                self._process_escaped_char(char)
                 i += 1
                 continue
-            elif char == '"' and not self.double_quoted:
-                self.double_quoted = True
-                i += 1 
-                continue               
-            elif char == '"' and self.double_quoted:
-                self.double_quoted = False
-                self.parsed_args.append(arg)
-                arg = ''
+            
+            # Handle escape character
+            if char == "\\":
+                self._handle_escape(i)
                 i += 1
                 continue
-            elif char == "\\" and self.double_quoted:
-                # Handle escaped characters in double quotes
-                if i + 1 < len(self.args) and self.args[i + 1] == '"':
-                    arg += '"'
-                    i += 2
-                    continue
-                elif i + 1 < len(self.args) and self.args[i + 1] == '\\':
-                    arg += "\\"
-                    i += 2
-                    continue
-                else:
-                    arg += "\\"
-                    i += 1
-                    continue
-
-            elif char == "'" and not self.double_quoted:
-                self.quoted = True
+            
+            # Handle quote characters
+            if char == "'":
+                self._handle_single_quote()
                 i += 1
                 continue
-
-            elif char == "'" and self.quoted:
-                self.quoted = False
-                self.parsed_args.append(arg)
-                arg = ''
+            
+            if char == '"':
+                self._handle_double_quote()
                 i += 1
                 continue
-
-            # build up the arg based upon the states
-            if char == ' ' and not self.quoted and not self.double_quoted:            
-                self.parsed_args.append(arg)
-                arg = ''
+            
+            # Handle whitespace
+            if char == " ":
+                self._handle_whitespace()
                 i += 1
-            else:
-                arg += char
-                i += 1
+                continue
+            
+            # Regular character - add to current token
+            self._add_char(char)
+            i += 1
         
-        if arg:
-            self.parsed_args.append(arg)
-
-
-    def parse(self)-> list[str]:
+        # Finish the final token if it exists
+        self._finish_token()
+    
+    def parse(self) -> list[str]:
         """
-        Returns the comma separated of the command and args
+        Parse the input and return list of tokens [command, arg1, arg2, ...]
         """
-
+        # Reset state for fresh parsing
+        self.state = State.NORMAL
+        self.escape = False
+        self.current_token = ""
+        self.tokens = []
+        
+        # Process the input
         self._process()
         
-        return [self.command] + self.parsed_args
+        # Return empty list if no tokens
+        if not self.tokens:
+            return []
+        
+        return self.tokens
+    
+    def get_command(self) -> str:
+        """Get the command (first token)"""
+        tokens = self.parse()
+        return tokens[0] if tokens else ""
+    
+    def get_args(self) -> list[str]:
+        """Get the arguments (all tokens except first)"""
+        tokens = self.parse()
+        return tokens[1:] if len(tokens) > 1 else []

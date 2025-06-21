@@ -12,9 +12,11 @@ def main():
 
         # Wait for user input
         raw_input = input()
-        prompt = shlex.split(raw_input)
+        # prompt = shlex.split(raw_input)
 
-        # prompt = MyLex(raw_input).parse()
+        prompt = MyLex(raw_input).parse()
+
+        # print(f"Parsed input: {prompt}")
 
         command = prompt[0] if prompt else ''
         args = prompt[1:] if len(prompt) > 1 else []
