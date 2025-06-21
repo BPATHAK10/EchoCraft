@@ -35,8 +35,6 @@ def handle_quotes(command):
     exp = r"'([^']*)'"
     matches = re.findall(exp, command)
 
-    # print(matches)
-
     if not matches:
         return command.split(' ')
     

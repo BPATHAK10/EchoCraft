@@ -4,6 +4,7 @@ import shutil
 import shlex
 import os
 from app.commands import type, change_dir, SHELL_BUILTINS
+from app.lexical import MyLex
 
 def main():
     while True:
@@ -12,6 +13,9 @@ def main():
         # Wait for user input
         raw_input = input()
         prompt = shlex.split(raw_input)
+
+        # prompt = MyLex(raw_input).parse()
+
         command = prompt[0] if prompt else ''
         args = prompt[1:] if len(prompt) > 1 else []
 
