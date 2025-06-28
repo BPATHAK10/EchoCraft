@@ -25,14 +25,14 @@ class RedirectProcessor:
         
         for instruction in redirect_instructions:
             if instruction.stream == 'stdout':
-                if instruction.redirect_type in ['>', '1>']:
+                if instruction.redirect_type in ('>', '1>'):
                     # Output redirect - write to file (overwrite)
                     success, error = self._write_to_file(output, instruction.target, mode='w')
                     if not success:
                         return False, "", error
                     final_stdout = ""  # Don't print to terminal
                     
-                elif instruction.redirect_type in ['>>', '1>>']:
+                elif instruction.redirect_type in ('>>', '1>>'):
                     # Append redirect - append to file
                     success, error = self._write_to_file(output, instruction.target, mode='a')
                     if not success:
@@ -40,12 +40,13 @@ class RedirectProcessor:
                     final_stdout = ""  # Don't print to terminal
 
             elif instruction.stream == 'stderr':
-                if instruction.redirect_type == '2>':
+                if instruction.redirect_type in ('2>', '2>>'):
                     # Redirect stderr to file
                     success, error = self._write_to_file(error_output, instruction.target, mode='w' if instruction.redirect_type == '2>' else 'a')
                     if not success:
                         return False, "", error
-                    final_stderr = ""    
+                    final_stderr = ""
+                   
             
         
         return True, final_stdout, final_stderr, ""
