@@ -1,0 +1,12 @@
+Pipfile
+Pipfile.lock
+README.md
+app
+banana
+codecrafters.yml
+pear
+rasberry
+tmp
+tmp2
+try.txt
+your_program.sh

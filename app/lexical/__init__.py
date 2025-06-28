@@ -3,6 +3,7 @@ My custom lexical analyzer for my shell
 """
 
 from enum import Enum
+from app.lexical.token import Token, TokenType
 
 class State(Enum):
     NORMAL = "normal"
@@ -14,18 +15,37 @@ class MyLex:
         self.input_text = input_text
         self.state = State.NORMAL
         self.escape = False
-        self.current_token = ""
+        self.current_token = Token()
         self.tokens = []
-    
-    def _finish_token(self):
+        self.position = -1
+        self.cmd_quote = input_text[0] if input_text[0] in ('"',"'") else ''
+
+        self.escape_chars = {
+            "\\",
+            '"',
+            "$",
+            "`",
+            "\n"
+        }
+
+    def _finish_token(self, preserve_quote: bool = False):
         """Finish the current token and add it to tokens list"""
-        if self.current_token:
+        if self.current_token.value:
+            self.position += 1
+            self.current_token.position = self.position
+            
+            # Handle preserve of quotes in the command
+            if preserve_quote:
+                self.current_token.type = TokenType.COMMAND
+                self.current_token.value = self.cmd_quote + self.current_token.value + self.cmd_quote
+            
             self.tokens.append(self.current_token)
-            self.current_token = ""
+            self.current_token = Token()
+
     
     def _add_char(self, char: str):
         """Add a character to the current token"""
-        self.current_token += char
+        self.current_token.value += char    
     
     def _process_escaped_char(self, char: str):
         """Handle an escaped character"""
@@ -33,10 +53,22 @@ class MyLex:
         self.escape = False
     
     def _handle_escape(self, i: int):
-        """Handle escape character (\)"""
-        if self.state == State.SINGLE_QUOTE or self.state == State.DOUBLE_QUOTE:
+        """Handle escape character (\\)"""
+        if self.state == State.SINGLE_QUOTE:
             # Inside single quotes, backslash is literal
             self._add_char("\\")
+        elif self.state == State.DOUBLE_QUOTE:
+            # Inside double quotes, backslash escapes only some next character
+            if i + 1 < len(self.input_text):
+                next_char = self.input_text[i+1]
+                if next_char in self.escape_chars:
+                    self.escape = True
+                else:
+                    self._add_char("\\")
+                
+            else:
+                # If at end of input, treat backslash as literal
+                self._add_char("\\")
         else:
             # Set escape flag for next character
             self.escape = True
@@ -65,10 +97,45 @@ class MyLex:
         """Handle whitespace character"""
         if self.state == State.NORMAL:
             # Only finish token on whitespace in normal state
-            self._finish_token()
+            if not self.tokens:
+                self._finish_token(preserve_quote=True)
+            else:
+                self._finish_token()
         else:
             # Inside quotes, whitespace is literal
             self._add_char(" ")
+
+    def _handle_redirect(self,val,append: bool = False, stdout: bool = True, stderr: bool = False):
+        """Handle redirect character """
+        if self.state == State.NORMAL:
+            if stdout and not append:
+                # Finish current token before adding redirect
+                self._finish_token()
+                self.current_token = (
+                    Token(type=TokenType.REDIRECT_OUT, value=val) if val == ">" 
+                    else Token(type=TokenType.REDIRECT_STDOUT, value=val))
+                self._finish_token()
+            
+            elif stdout and append:
+                self._finish_token()
+                self.current_token = Token(type=TokenType.REDIRECT_APPEND, value=val)
+                self._finish_token()
+
+            elif stderr and not append:
+                # Finish current token before adding redirect
+                self._finish_token()
+                self.current_token = Token(type=TokenType.REDIRECT_ERROR, value=val)
+                self._finish_token()
+
+            elif stderr and append:
+                self._finish_token()
+                self.current_token = Token(type=TokenType.REDIRECT_ERROR_APPEND, value=val)
+                self._finish_token()
+            
+        else:
+            # Inside quotes, val is literal
+            self._add_char(val)
+
     
     def _process(self):
         """Main processing method"""
@@ -86,6 +153,34 @@ class MyLex:
             if char == "\\":
                 self._handle_escape(i)
                 i += 1
+                continue
+            
+            # Handle redirect out and redirect append
+            if char == "1" and i + 1 < len(self.input_text) and self.input_text[i + 1] == ">":
+                if i + 2 < len(self.input_text) and self.input_text[i + 2] == ">":
+                    self._handle_redirect(val="1>>", append=True)
+                    i += 3
+                else:
+                    self._handle_redirect(val="1>")
+                    i += 2
+                continue
+            if char == ">":
+                if i + 1 < len(self.input_text) and self.input_text[i + 1] == ">":
+                    self._handle_redirect(val=">>", append=True)
+                    i += 2
+                else:
+                    self._handle_redirect(val=">")
+                    i += 1
+                continue
+
+            # Handle stderr
+            if char == "2" and i + 1 < len(self.input_text) and self.input_text[i + 1] == ">":
+                if i + 2 < len(self.input_text) and self.input_text[i + 2] == ">":
+                    self._handle_redirect(val="2>>", append=True, stdout=False, stderr=True)
+                    i += 3
+                else:
+                    self._handle_redirect(val="2>", stdout=False ,stderr=True)
+                    i += 2
                 continue
             
             # Handle quote characters
@@ -119,7 +214,7 @@ class MyLex:
         # Reset state for fresh parsing
         self.state = State.NORMAL
         self.escape = False
-        self.current_token = ""
+        self.current_token = Token()
         self.tokens = []
         
         # Process the input
