@@ -124,12 +124,12 @@ class MyLex:
             elif stderr and not append:
                 # Finish current token before adding redirect
                 self._finish_token()
-                self.current_token = Token(type=TokenType.REDIRECT_ERROR, value=val)
+                self.current_token = Token(type=TokenType.REDIRECT_STDERR, value=val)
                 self._finish_token()
 
             elif stderr and append:
                 self._finish_token()
-                self.current_token = Token(type=TokenType.REDIRECT_ERROR_APPEND, value=val)
+                self.current_token = Token(type=TokenType.REDIRECT_STDERR_APPEND, value=val)
                 self._finish_token()
             
         else:
