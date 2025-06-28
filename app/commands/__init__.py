@@ -25,7 +25,7 @@ class BaseCommand:
 class PwdCommand(BaseCommand):
     def execute(self, args) -> CommandResult:
         try:
-            cwd = os.getcwd()
+            cwd = os.getcwd() + "\n"
             return CommandResult(exit_code=0, stdout=cwd)
         except Exception as e:
             return CommandResult(exit_code=1, stderr=str(e))
@@ -38,11 +38,11 @@ class TypeCommand(BaseCommand):
         builtin = args[0].value
         try:
             if CommandRegistry().is_builtin_command(builtin):
-                return CommandResult(exit_code=0, stdout=f"{builtin} is a shell builtin")
+                return CommandResult(exit_code=0, stdout=f"{builtin} is a shell builtin\n")
             elif path := shutil.which(builtin):
-                return CommandResult(exit_code=0, stdout=f"{builtin} is {path}")
+                return CommandResult(exit_code=0, stdout=f"{builtin} is {path}\n")
             else:
-                return CommandResult(exit_code=0, stdout=f"{builtin}: not found")
+                return CommandResult(exit_code=0, stdout=f"{builtin}: not found\n")
         except Exception as e:
             return CommandResult(exit_code=1, stderr=str(e))
     
@@ -50,7 +50,7 @@ class TypeCommand(BaseCommand):
 class ChangeDirCommand(BaseCommand):
     def execute(self, args) -> CommandResult:
         if not args:
-            return CommandResult(exit_code=1, stderr="cd: missing argument")
+            return CommandResult(exit_code=1, stderr="cd: missing argument\n")
         
         dir = args[0].value
 
@@ -60,7 +60,7 @@ class ChangeDirCommand(BaseCommand):
         try:
             os.chdir(dir)
         except FileNotFoundError:
-            return CommandResult(exit_code=1, stderr=f"cd: {dir}: No such file or directory")
+            return CommandResult(exit_code=1, stderr=f"cd: {dir}: No such file or directory\n")
         
         return CommandResult(exit_code=0)
 
@@ -79,7 +79,7 @@ class EchoCommand(BaseCommand):
             return CommandResult(exit_code=0, stdout="")
         
         # Join arguments with spaces
-        output = " ".join(arg.value for arg in args)
+        output = " ".join(arg.value for arg in args) + "\n"
         return CommandResult(exit_code=0, stdout=output)
     
     def get_help(self) -> str:

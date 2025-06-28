@@ -76,41 +76,43 @@ def main():
                 )
                 result = CommandResult(
                     exit_code=subprocess_result.returncode,
-                    stdout=subprocess_result.stdout.strip(),
-                    stderr=subprocess_result.stderr.strip()
+                    # stdout=subprocess_result.stdout.strip(),
+                    # stderr=subprocess_result.stderr.strip(),
+                    stdout=subprocess_result.stdout,
+                    stderr=subprocess_result.stderr,
                 )
                 # stdout_output = result.stdout
                 # stderr_output = result.stderr
             except FileNotFoundError as e:
-                result = CommandResult(exit_code=1, stderr=f"{command_name}: command not found")
+                result = CommandResult(exit_code=1, stderr=f"{command_name}: command not found\n")
             except subprocess.CalledProcessError as e:
                 if e.returncode == 127:
-                    result = CommandResult(exit_code=1, stderr=f"{command_name}: command not found")
+                    result = CommandResult(exit_code=1, stderr=f"{command_name}: command not found\n")
                 else:
-                    result = CommandResult(exit_code=1, stderr=e.stderr.strip(), stdout=e.stdout.strip())
+                    result = CommandResult(exit_code=1, stderr=e.stderr, stdout=e.stdout)
                 # stdout_output = e.stdout if e.stdout else ""
                 # stderr_output = e.stderr if e.stderr else f"{command_name}: command failed"
 
         if not parser.has_redirects(tokens):
             if result.exit_code == 1: # has error
-                print(result.stderr)
+                print(result.stderr, end="")
             elif result.exit_code == -1:
                 break
             else:
                 if result.stdout:
-                    print(result.stdout)
+                    print(result.stdout, end="")
         else:
             success, final_output, final_stderr, error_message = redirect_processor.apply_redirects(
                 # stdout_output, stderr_output, redirect_instructions
                 result.stdout, result.stderr, redirect_instructions
                 )
             if not success:
-                print(error_message)
+                print(error_message, end="")
             else:
                 if final_output:
-                    print(final_output)
+                    print(final_output, end="")
                 if final_stderr:
-                    print(final_stderr, file=sys.stderr)
+                    print(final_stderr, end="")
 
 if __name__ == "__main__":
     main()
