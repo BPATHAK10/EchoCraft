@@ -46,8 +46,6 @@ class RedirectProcessor:
                     if not success:
                         return False, "", error
                     final_stderr = ""
-                   
-            
         
         return True, final_stdout, final_stderr, ""
     

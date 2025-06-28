@@ -1,11 +1,11 @@
 class RedirectInstruction:
     """Represents a single redirect instruction"""
     def __init__(self, redirect_type, target, stream='stdout'):
-        self.redirect_type = redirect_type  # '>', '<', '>>'
-        self.target = target  # filename
-        self.stream = stream  # 'stdout' or 'stdin' (default is stdout)
-        self.append = redirect_type.endswith('>>')  # True if append redirect
-    
+        self.redirect_type = redirect_type
+        self.target = target  
+        self.stream = stream 
+        self.append = redirect_type.endswith('>>')
+
     def __str__(self):
         return f"RedirectInstruction({self.redirect_type} -> {self.target})"
 
@@ -77,4 +77,4 @@ class Parser:
         if token_type_name in ['REDIRECT_STDERR', 'REDIRECT_STDERR_APPEND']:
             return 'stderr'
         else:
-            return 'stdout'  # Default for '>', '>>', '1>', '1>>'
+            return 'stdout'
