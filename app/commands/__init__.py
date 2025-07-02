@@ -8,6 +8,9 @@ class CommandResult:
         self.stdout = stdout
         self.stderr = stderr
 
+    def __repr__(self):
+        return f"CommandResult(exit_code={self.exit_code}, stdout='{self.stdout}', stderr='{self.stderr}')"
+
 class BaseCommand:
     def execute(self, args) -> CommandResult:
         # Override in subclasses

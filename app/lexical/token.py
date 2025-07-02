@@ -18,5 +18,5 @@ class Token:
         self.value = value
         self.position = position
 
-    def __str__(self):
+    def __repr__(self):
         return f"Token(type={self.type}, value='{self.value}', position={self.position})"

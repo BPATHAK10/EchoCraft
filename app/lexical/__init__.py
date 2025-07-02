@@ -9,6 +9,7 @@ class State(Enum):
     NORMAL = "normal"
     SINGLE_QUOTE = "single_quote"
     DOUBLE_QUOTE = "double_quote"
+    PIPE = "pipe"
 
 class MyLex:
     def __init__(self, input_text: str):
@@ -28,17 +29,21 @@ class MyLex:
             "\n"
         }
 
-    def _finish_token(self, preserve_quote: bool = False):
+        self.pipe = "|"
+
+    def _finish_token(self, preserve_quote: bool = False, is_command: bool = False):
         """Finish the current token and add it to tokens list"""
         if self.current_token.value:
             self.position += 1
             self.current_token.position = self.position
             
+            # If it's a command, set the type accordingly
+            if is_command:
+                self.current_token.type = TokenType.COMMAND
+
             # Handle preserve of quotes in the command
             if preserve_quote:
-                self.current_token.type = TokenType.COMMAND
                 self.current_token.value = self.cmd_quote + self.current_token.value + self.cmd_quote
-            
             self.tokens.append(self.current_token)
             self.current_token = Token()
 
@@ -97,11 +102,14 @@ class MyLex:
         """Handle whitespace character"""
         if self.state == State.NORMAL:
             # Only finish token on whitespace in normal state
-            if not self.tokens:
-                self._finish_token(preserve_quote=True)
+            if not self.tokens: # This means the first token so its a command
+                self._finish_token(preserve_quote=True, is_command=True)
             else:
                 self._finish_token()
-        else:
+        elif self.current_token.value and self.state == State.PIPE:
+            self._finish_token(is_command=True)
+            self.state = State.NORMAL
+        elif self.state in (State.SINGLE_QUOTE, State.DOUBLE_QUOTE):
             # Inside quotes, whitespace is literal
             self._add_char(" ")
 
@@ -135,6 +143,19 @@ class MyLex:
         else:
             # Inside quotes, val is literal
             self._add_char(val)
+        
+
+    def _handle_pipe(self):
+        """Handle pipe character"""
+        if self.state == State.NORMAL:
+            # Finish current token before adding pipe
+            self._finish_token()
+            self.current_token = Token(type=TokenType.PIPE, value=self.pipe)
+            self._finish_token()
+            self.state = State.PIPE
+        elif self.state == State.SINGLE_QUOTE:
+            # Inside quotes, pipe is literal
+            self._add_char(self.pipe)
 
     
     def _process(self):
@@ -152,6 +173,12 @@ class MyLex:
             # Handle escape character
             if char == "\\":
                 self._handle_escape(i)
+                i += 1
+                continue
+
+            # Handle pipe character
+            if char == self.pipe:
+                self._handle_pipe()
                 i += 1
                 continue
             
@@ -205,7 +232,11 @@ class MyLex:
             i += 1
         
         # Finish the final token if it exists
-        self._finish_token()
+        # Check if the last token is a command
+        if self.state == State.PIPE and self.current_token.value:
+            self._finish_token(is_command=True)
+        else:
+            self._finish_token()
     
     def parse(self) -> list[str]:
         """
