@@ -16,7 +16,7 @@ def main():
     while True:
         try:
             sys.stdout.write("$ ")
-            sys.stdout.flush()  # Ensure prompt appears immediately
+            sys.stdout.flush() 
 
             # Wait for user input
             raw_input = input()

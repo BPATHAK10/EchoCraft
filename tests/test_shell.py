@@ -1,12 +1,22 @@
 import pexpect
 import pytest
 import os
-import time
 
 @pytest.fixture
-def shell_process():
+def shell_process(tmp_path):
     shell_script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "echo-craft.sh"))
-    proc = pexpect.spawn(shell_script_path, encoding='utf-8', timeout=5)
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = project_root
+
+    proc = pexpect.spawn(
+        shell_script_path,
+        cwd=str(tmp_path),
+        env=env,             
+        encoding='utf-8',
+        timeout=5
+    )
 
     # Wait for *any* prompt after banner (just once)
     proc.expect(r'(?:\x1b\[[0-9;]*m)*\$ ')
@@ -17,7 +27,7 @@ def shell_process():
 
 def run_shell_command(proc, command, prompt=r'(?:\x1b\[[0-9;]*m)*\$ '):
     """
-    Wait for prompt (possibly ANSI-colored), send a command, wait for next prompt,
+    Wait for prompt, send a command, wait for next prompt,
     return the output between them.
     """
     proc.sendline(command)
