@@ -1,8 +1,10 @@
 import subprocess
-from app.parser.redirect import RedirectInstruction, RedirectParser
+from typing import List, Tuple
+from app.parser.redirect import RedirectParser
 from app.redirect import RedirectProcessor
 from app.commands import CommandResult
 from app.lexical.token import Token, TokenType
+from app.parser.pipe import PipeCommand
 
 class PipeProcessor:
     """Handles execution of command pipelines"""
@@ -10,7 +12,7 @@ class PipeProcessor:
     def __init__(self, command_registry):
         self.registry = command_registry
     
-    def execute_pipeline(self, pipe_commands):
+    def execute_pipeline(self, pipe_commands: List[PipeCommand]) -> Tuple[int, str, str]:
         """
         Execute a pipeline of commands
         
@@ -45,7 +47,7 @@ class PipeProcessor:
         
         return 0, "", ""
     
-    def _execute_single_command(self, pipe_command, input_data):
+    def _execute_single_command(self, pipe_command: PipeCommand, input_data: str) -> Tuple[int, str, str]:
         """
         Execute a single command with given input
         

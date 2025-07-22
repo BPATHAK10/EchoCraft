@@ -1,6 +1,6 @@
 # 🐚 EchoCraft - Custom Python Shell
 
-A POSIX-compliant shell built in Python, featuring a custom tokenizer, parser, and support for key shell functionalities like piping, redirection, and command history.
+A shell built in Python, featuring a custom tokenizer, parser, and support for key shell functionalities like piping, redirection, and command history.
 
 > ⚙️ **Originally inspired by the ["Build Your Own Shell" challenge](https://app.codecrafters.io/courses/shell/overview) from [CodeCrafters.io](https://codecrafters.io)**. This project began as part of that challenge but has since evolved into a fully custom implementation.
 
@@ -30,8 +30,14 @@ A POSIX-compliant shell built in Python, featuring a custom tokenizer, parser, a
 4. Enjoy !!!
 
 
-🎥 Demo
+## 🎥 Demo
 
 
 
-📸 Screenshots
+## 📸 Screenshots
+
+### Shell in action
+
+![Interactive Shell Prompt](screenshots/shell.png)
+
+---

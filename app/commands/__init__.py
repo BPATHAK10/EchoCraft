@@ -1,10 +1,11 @@
 import os
 import shutil
 from app.history import HistoryManager
+from app.lexical.token import TokenType
+from typing import List
 
 class CommandResult:
     def __init__(self, exit_code=0, stdout="", stderr=""):
-        # Design this to hold all command results
         self.exit_code = exit_code
         self.stdout = stdout
         self.stderr = stderr
@@ -13,7 +14,7 @@ class CommandResult:
         return f"CommandResult(exit_code={self.exit_code}, stdout='{self.stdout}', stderr='{self.stderr}')"
 
 class BaseCommand:
-    def execute(self, args) -> CommandResult:
+    def execute(self, args: List[TokenType]) -> CommandResult:
         # Override in subclasses
         pass
         
@@ -21,7 +22,7 @@ class BaseCommand:
         # Return help text
         pass
         
-    def validate_args(self, args) -> bool:
+    def validate_args(self, args: List[TokenType]) -> bool:
         # Check if arguments are valid
         pass
 

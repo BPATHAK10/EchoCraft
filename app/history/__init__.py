@@ -55,13 +55,8 @@ class HistoryManager:
         except (PermissionError, OSError) as e:
             print(f"Warning: Could not save history: {e}")
     
-    def add_command(self, command):
-        """
-        Add a command to history
-        
-        Args:
-            command (str): Command to add to history
-        """
+    def add_command(self, command: str):
+        """Add a command to history"""
         # Only add non-empty commands
         if command and command.strip():
             cmd = command.strip()
@@ -70,22 +65,9 @@ class HistoryManager:
             history_len = readline.get_current_history_length()
             if history_len == 0 or readline.get_history_item(history_len) != cmd:
                 readline.add_history(cmd)
-                # print(f"Added to history: '{cmd}' (total: {readline.get_current_history_length()})")  # Debug line
     
     def get_input(self, prompt="$ "):
-        """
-        Get user input with history support
-        
-        Args:
-            prompt (str): Command prompt to display
-            
-        Returns:
-            str: User input
-            
-        Raises:
-            KeyboardInterrupt: On Ctrl+C
-            EOFError: On Ctrl+D
-        """
+        """Get user input with history support"""
         return input(prompt)
     
     def get_history_length(self):
@@ -96,17 +78,8 @@ class HistoryManager:
         """Clear all command history"""
         readline.clear_history()
 
-    def get_history(self, count=None):
-        """
-        Get command history
-        
-        Args:
-            count (int, optional): Number of recent commands to return. 
-                                 If None, returns all history.
-        
-        Returns:
-            list: List of tuples (index, command) where index starts from 1
-        """
+    def get_history(self, count=None) -> list:
+        """Get command history"""
         history_length = readline.get_current_history_length()
         
         if history_length == 0:
@@ -127,12 +100,7 @@ class HistoryManager:
         return history_list
     
     def print_history(self, count=None):
-        """
-        Print command history to stdout
-        
-        Args:
-            count (int, optional): Number of recent commands to show
-        """
+        """Print command history to stdout"""
         history_list = self.get_history(count)
         
         if not history_list:

@@ -5,16 +5,7 @@ class RedirectProcessor:
     """Handles applying redirect instructions to command output"""
     
     def apply_redirects(self, output: str, error_output: str, redirect_instructions: List) -> tuple:
-        """
-        Apply redirect instructions to command output
-        
-        Args:
-            output: The command's output string
-            redirect_instructions: List of RedirectInstruction objects
-            
-        Returns:
-            tuple: (success: bool, final_output: str, error_message: str)
-        """
+        """Apply redirect instructions to command output"""
         # If no redirects, return output as-is
         if not redirect_instructions:
             return True, output, ""
@@ -50,12 +41,7 @@ class RedirectProcessor:
         return True, final_stdout, final_stderr, ""
     
     def _write_to_file(self, content: str, filename: str, mode: str) -> tuple:
-        """
-        Write content to file
-        
-        Returns:
-            tuple: (success: bool, error_message: str)
-        """
+        """Write content to file"""
         try:
             with open(filename, mode) as f:
                 f.write(content)

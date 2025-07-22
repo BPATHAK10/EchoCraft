@@ -1,4 +1,5 @@
 from app.lexical.token import TokenType, Token
+from typing import List
 
 class PipeCommand:
     """Represents a single command in a pipeline"""
@@ -12,16 +13,8 @@ class PipeCommand:
 class PipeParser:
     """Parses tokens into pipeline commands"""
     
-    def parse(self, tokens):
-        """
-        Split tokens into individual commands separated by pipes
-        
-        Args:
-            tokens: List of Token objects from lexer
-            
-        Returns:
-            list: List of PipeCommand objects
-        """
+    def parse(self, tokens: List[Token]) -> List[PipeCommand]:
+        """Split tokens into individual commands separated by pipes"""
         if not tokens:
             return []
         
@@ -54,6 +47,6 @@ class PipeParser:
         
         return commands
     
-    def is_pipeline(self, tokens):
+    def is_pipeline(self, tokens: List[TokenType]) -> bool:
         """Check if tokens represent a pipeline"""
         return any(token.type == TokenType.PIPE for token in tokens)

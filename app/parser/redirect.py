@@ -1,3 +1,6 @@
+from typing import List
+from app.lexical.token import TokenType
+
 class RedirectInstruction:
     """Represents a single redirect instruction"""
     def __init__(self, redirect_type, target, stream='stdout'):
@@ -23,16 +26,8 @@ class RedirectParser:
             'REDIRECT_STDERR_APPEND': '2>>'
         }
     
-    def parse(self, tokens):
-        """
-        Split tokens into command_tokens and redirect_instructions
-        
-        Args:
-            tokens: List of Token objects from lexer
-            
-        Returns:
-            tuple: (command_tokens, redirect_instructions)
-        """
+    def parse(self, tokens: List[TokenType]) -> tuple:
+        """Split tokens into command_tokens and redirect_instructions"""
         command_tokens = []
         redirect_instructions = []
         
@@ -65,14 +60,14 @@ class RedirectParser:
         
         return command_tokens, redirect_instructions
     
-    def has_redirects(self, tokens):
+    def has_redirects(self, tokens: List[TokenType]) -> bool:
         """Quick check if tokens contain any redirects"""
         for token in tokens:
             if token.type.name in self.redirect_operators:
                 return True
         return False
     
-    def _get_stream_type(self, token_type_name):
+    def _get_stream_type(self, token_type_name: str) -> str:
         """Determine which stream the redirect affects"""
         if token_type_name in ['REDIRECT_STDERR', 'REDIRECT_STDERR_APPEND']:
             return 'stderr'

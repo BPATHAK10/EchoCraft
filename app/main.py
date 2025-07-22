@@ -32,32 +32,23 @@ def main():
 
             if not tokens:
                 continue
-            
-            # Debug output (you can remove these later)
-            # print("Tokens:")
-            # for p in tokens:
-            #     print(p)
 
             # Parse Pipes
             pipe_commands = pipe_parser.parse(tokens)
-
-            # print("Pipe Commands:")
-            # for cmd in pipe_commands:
-            #     print(cmd.command, cmd.args)
 
             # Execute pipeline (automatically handles all commands with timeout)
             exit_code, stdout_output, stderr_output = pipe_processor.execute_pipeline(pipe_commands)
             
             # Handle output and errors
             if exit_code == -1:
-                # Exit signal from built-in command (like 'exit')
+                # Exit signal from built-in command
                 break
             elif exit_code != 0:
                 # Command failed
                 if stderr_output:
                     print(stderr_output, end="", file=sys.stderr)
                     sys.stderr.flush()
-                # Some commands output error info to stdout even on failure
+            
                 if stdout_output and not stderr_output:
                     print(stdout_output, end="")
                     sys.stdout.flush()
