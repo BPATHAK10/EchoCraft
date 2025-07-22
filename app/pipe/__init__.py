@@ -1,6 +1,8 @@
 import subprocess
-import sys
-from io import StringIO
+from app.parser.redirect import RedirectInstruction, RedirectParser
+from app.redirect import RedirectProcessor
+from app.commands import CommandResult
+from app.lexical.token import Token, TokenType
 
 class PipeProcessor:
     """Handles execution of command pipelines"""
@@ -50,26 +52,26 @@ class PipeProcessor:
         Returns:
             tuple: (exit_code, stdout, stderr)
         """
-        command_name = pipe_command.command.value
-        args = [arg.value for arg in pipe_command.args]
+
+        redirect_parser = RedirectParser()
+        redirect_processor = RedirectProcessor()
+        tokens = [pipe_command.command] + pipe_command.args
+
+        # Parse the single command for redirect instruction
+        command_tokens, redirect_instructions = redirect_parser.parse(tokens)
+
+        # Get the commands from the redirect parser
+        command_name = command_tokens[0].value
+        args = command_tokens[1:]
         
         # Check if it's a built-in command
         command = self.registry.get_command(command_name)
         
-        if command:
-            # Built-in command - simulate input by temporarily changing stdin
-            if input_data:
-                # For built-in commands, we might need special handling
-                # For now, most built-ins don't read from stdin
-                pass
-            
-            result = command.execute(pipe_command.args)
-            return result.exit_code, result.stdout, ""
-        
-        elif self.registry.is_external_command(command_name):
+        # execute commands
+        if self.registry.is_external_command(command_name):
             # External command - use subprocess with pipes
             try:
-                cmd_list = [command_name] + args
+                cmd_list = [command_name] + [arg.value for arg in args]
                 
                 result = subprocess.run(
                     cmd_list,
@@ -80,12 +82,38 @@ class PipeProcessor:
                     check=False  # Don't raise exception on non-zero exit
                 )
                 
-                return result.returncode, result.stdout, result.stderr
-                
+                result = CommandResult(
+                    exit_code=result.returncode,
+                    stdout=result.stdout,
+                    stderr=result.stderr
+                )
+
+                return result.exit_code, result.stdout, result.stderr
+            
             except FileNotFoundError:
                 return 1, "", f"{command_name}: command not found"
             except Exception as e:
                 return 1, "", f"{command_name}: {str(e)}"
         
         else:
-            return 1, "", f"{command_name}: command not found"
+            # add the input data to args if available
+            if input_data:
+                args.append(Token(type=TokenType.WORD, value=input_data))
+            result = command.execute(args)
+
+    
+        if redirect_parser.has_redirects(tokens):
+            success, final_output, final_stderr, error_message = redirect_processor.apply_redirects(
+                result.stdout,
+                result.stderr,
+                redirect_instructions
+            )
+
+            if not success:
+                return 1, "", error_message
+            else:
+                return result.exit_code, final_output, final_stderr
+        else:
+            return result.exit_code, result.stdout, result.stderr
+            
+        
