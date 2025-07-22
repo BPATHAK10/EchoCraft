@@ -87,8 +87,6 @@ class PipeProcessor:
                     stdout=result.stdout,
                     stderr=result.stderr
                 )
-
-                return result.exit_code, result.stdout, result.stderr
             
             except FileNotFoundError:
                 return 1, "", f"{command_name}: command not found"
@@ -113,7 +111,7 @@ class PipeProcessor:
                 return 1, "", error_message
             else:
                 return result.exit_code, final_output, final_stderr
-        else:
-            return result.exit_code, result.stdout, result.stderr
+        
+        return result.exit_code, result.stdout, result.stderr
             
         
