@@ -3,11 +3,13 @@ from app.commands import CommandRegistry
 from app.lexical import MyLex
 from app.parser.pipe import PipeParser
 from app.pipe import PipeProcessor
+from app.history import HistoryManager
 
 from app.utils import display_welcome_message
 
 def main():
-    registry = CommandRegistry()
+    history_manager = HistoryManager()
+    registry = CommandRegistry(history_manager)
     pipe_parser = PipeParser()
     pipe_processor = PipeProcessor(registry)
 
@@ -15,15 +17,15 @@ def main():
 
     while True:
         try:
-            sys.stdout.write("$ ")
-            sys.stdout.flush() 
-
-            # Wait for user input
-            raw_input = input()
+            # Get user input with history support
+            raw_input = history_manager.get_input("$ ")
 
             # Handle empty input
             if not raw_input.strip():
                 continue
+
+            # Add command to history before processing
+            history_manager.add_command(raw_input)
 
             # Tokenize
             tokens = MyLex(raw_input).parse()
@@ -77,6 +79,10 @@ def main():
             # Handle unexpected errors
             print(f"Shell error: {e}", file=sys.stderr)
             continue
+
+        finally:
+            # Save history on exit
+            pass
 
 if __name__ == "__main__":
     main()

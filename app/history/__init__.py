@@ -1,0 +1,143 @@
+import os
+import readline
+import atexit
+
+class HistoryManager:
+    """Simple history manager for shell commands using readline"""
+    
+    def __init__(self, history_file=None):
+        """
+        Initialize history manager
+        
+        Args:
+            history_file (str, optional): Path to history file. Defaults to ~/.myshell_history
+        """
+        self.history_file = history_file or os.path.expanduser("~/.myshell_history")
+        self._setup_readline()
+        self.load_history()
+        
+        # Register automatic save on exit
+        atexit.register(self.save_history)
+    
+    def _setup_readline(self):
+        """Configure readline for history support"""
+        # Disable Python's automatic history to avoid conflicts
+        try:
+            readline.set_auto_history(False)
+        except AttributeError:
+            # set_auto_history not available in older Python versions
+            pass
+        
+        # Enable history
+        readline.set_history_length(50)  # Keep last 50 commands
+        
+        # Set up basic key bindings for arrow keys
+        readline.parse_and_bind("\\e[A: previous-history")  # Up arrow
+        readline.parse_and_bind("\\e[B: next-history")      # Down arrow
+    
+    def load_history(self):
+        """Load command history from file if it exists"""
+        try:
+            if os.path.exists(self.history_file):
+                readline.clear_history()  # Clear any existing history first
+                readline.read_history_file(self.history_file)
+                # print(f"Loaded {readline.get_current_history_length()} commands from history")
+        except (FileNotFoundError, PermissionError) as e:
+            print(f"Note: Could not load history file: {e}")
+    
+    def save_history(self):
+        """Save command history to file"""
+        try:
+            # Create directory if it doesn't exist
+            os.makedirs(os.path.dirname(self.history_file), exist_ok=True)
+            readline.write_history_file(self.history_file)
+            # print(f"Saved {readline.get_current_history_length()} commands to history")
+        except (PermissionError, OSError) as e:
+            print(f"Warning: Could not save history: {e}")
+    
+    def add_command(self, command):
+        """
+        Add a command to history
+        
+        Args:
+            command (str): Command to add to history
+        """
+        # Only add non-empty commands
+        if command and command.strip():
+            cmd = command.strip()
+            
+            # Avoid duplicate consecutive commands
+            history_len = readline.get_current_history_length()
+            if history_len == 0 or readline.get_history_item(history_len) != cmd:
+                readline.add_history(cmd)
+                # print(f"Added to history: '{cmd}' (total: {readline.get_current_history_length()})")  # Debug line
+    
+    def get_input(self, prompt="$ "):
+        """
+        Get user input with history support
+        
+        Args:
+            prompt (str): Command prompt to display
+            
+        Returns:
+            str: User input
+            
+        Raises:
+            KeyboardInterrupt: On Ctrl+C
+            EOFError: On Ctrl+D
+        """
+        return input(prompt)
+    
+    def get_history_length(self):
+        """Get current number of commands in history"""
+        return readline.get_current_history_length()
+    
+    def clear_history(self):
+        """Clear all command history"""
+        readline.clear_history()
+
+    def get_history(self, count=None):
+        """
+        Get command history
+        
+        Args:
+            count (int, optional): Number of recent commands to return. 
+                                 If None, returns all history.
+        
+        Returns:
+            list: List of tuples (index, command) where index starts from 1
+        """
+        history_length = readline.get_current_history_length()
+        
+        if history_length == 0:
+            return []
+        
+        # Determine how many commands to return
+        if count is None:
+            start_idx = 1
+        else:
+            start_idx = max(1, history_length - count + 1)
+        
+        history_list = []
+        for i in range(start_idx, history_length + 1):
+            command = readline.get_history_item(i)
+            if command:
+                history_list.append((i, command))
+        
+        return history_list
+    
+    def print_history(self, count=None):
+        """
+        Print command history to stdout
+        
+        Args:
+            count (int, optional): Number of recent commands to show
+        """
+        history_list = self.get_history(count)
+        
+        if not history_list:
+            print("No commands in history")
+            return
+        
+        for index, command in history_list:
+            print(f"{index:4d}  {command}")

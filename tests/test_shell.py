@@ -73,3 +73,26 @@ def test_pipeline_with_output_redirection(shell_process):
     run_shell_command(shell_process, "echo hello world | tr a-z A-Z > caps.txt")
     output = run_shell_command(shell_process, "cat caps.txt")
     assert output == ["HELLO WORLD"]
+
+
+def test_command_not_found(shell_process):
+    output = run_shell_command(shell_process, "nonexistentcommand")
+    
+    error_output = "".join(output).strip()
+    assert "nonexistentcommand: command not found" == error_output
+
+
+def test_history(shell_process):
+    # First command
+    run_shell_command(shell_process, "echo first")
+    # Second command
+    run_shell_command(shell_process, "ls")
+    
+    # Check history
+    output = run_shell_command(shell_process, "history")
+
+    # Parse the output to remove the command number prefix
+    output = [line.strip().split(" ", 1)[1].strip() for line in output]
+    
+    # Expecting the last two commands in history
+    assert output[-3:] == ["echo first", "ls", "history"]

@@ -89,7 +89,7 @@ class PipeProcessor:
                 )
             
             except FileNotFoundError:
-                return 1, "", f"{command_name}: command not found"
+                return 1, "", f"{command_name}: command not found\n"
             except Exception as e:
                 return 1, "", f"{command_name}: {str(e)}"
         
