@@ -5,14 +5,10 @@ import atexit
 class HistoryManager:
     """Simple history manager for shell commands using readline"""
     
-    def __init__(self, history_file=None):
+    def __init__(self):
         """
         Initialize history manager
-        
-        Args:
-            history_file (str, optional): Path to history file. Defaults to ~/.myshell_history
         """
-        self.history_file = history_file or os.path.expanduser("~/.myshell_history")
         self._setup_readline()
         self.load_history()
         
@@ -38,20 +34,16 @@ class HistoryManager:
     def load_history(self):
         """Load command history from file if it exists"""
         try:
-            if os.path.exists(self.history_file):
-                readline.clear_history()  # Clear any existing history first
-                readline.read_history_file(self.history_file)
-                # print(f"Loaded {readline.get_current_history_length()} commands from history")
+            readline.clear_history()
+            readline.read_history_file()
+
         except (FileNotFoundError, PermissionError) as e:
             print(f"Note: Could not load history file: {e}")
     
     def save_history(self):
         """Save command history to file"""
         try:
-            # Create directory if it doesn't exist
-            os.makedirs(os.path.dirname(self.history_file), exist_ok=True)
-            readline.write_history_file(self.history_file)
-            # print(f"Saved {readline.get_current_history_length()} commands to history")
+            readline.write_history_file()
         except (PermissionError, OSError) as e:
             print(f"Warning: Could not save history: {e}")
     
