@@ -132,6 +132,12 @@ class HistoryCommand(BaseCommand):
         except Exception as e:
             return CommandResult(exit_code=1, stdout="", stderr=f"history: error: {e}\n")
 
+class ValarMorghulisCommand(BaseCommand):
+    def execute(self, args) -> CommandResult:
+        return CommandResult(exit_code=0, stdout="Valar Dohaeris!!!\n")
+    
+    def get_help(self) -> str:
+        return "A custom command for all the GOT fans."
     
 class CommandRegistry:
     def __init__(self, history_manager: HistoryManager = None):
@@ -145,6 +151,7 @@ class CommandRegistry:
         self.register_builtin("exit", ExitCommand)
         self.register_builtin("echo", EchoCommand)
         self.register_builtin("history", HistoryCommand, history_manager=history_manager)
+        self.register_builtin("valar-morghulis", ValarMorghulisCommand)
     
     def register_builtin(self, name: str, command_class: BaseCommand, **kwargs):
         # Check if command_class is already an instance
