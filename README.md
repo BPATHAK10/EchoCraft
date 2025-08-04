@@ -9,6 +9,7 @@ A shell built in Python, featuring a custom tokenizer, parser, and support for k
 ## 🧠 Features
 
 - 🔤 **Custom tokenizer and parser** to handle shell command input
+- 🛠️ **Custom Command Implementation** for some basic shell commands
 - 🔁 **Pipelines** (`|`) and **Redirections** (`>`, `<`) supported
 - 📜 **Command history** management
 - 📂 Built-in commands like `cd`, `pwd`, `echo`, and more
