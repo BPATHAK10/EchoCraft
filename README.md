@@ -32,7 +32,7 @@ A shell built in Python, featuring a custom tokenizer, parser, and support for k
 
 
 ## 🎥 Demo
-
+[Demo Video](https://youtu.be/S2mrjbgXuWc)
 
 
 ## 📸 Screenshots
